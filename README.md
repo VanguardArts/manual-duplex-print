@@ -180,10 +180,39 @@ export DUPLEX_PRINTER=L3250_Series
 ## How it works
 
 Nothing exotic: it submits two CUPS jobs with `-o page-set=odd` /
-`-o page-set=even` (handled by `cups-filters`' `pdftopdf`), polls
-`lpstat -o` to detect when the first pass finishes, converts non-PDF input
-with headless LibreOffice, and uses desktop dialogs for the wizard steps.
-A single dependency-light bash script — no daemon, no background service.
+`-o page-set=even` (handled by `cups-filters`' `pdftopdf`), converts
+non-PDF input with headless LibreOffice/pandoc, and uses desktop dialogs
+for the wizard steps. A single dependency-light bash script — no daemon,
+no background service.
+
+### Job-completion detection (the careful part)
+
+An empty queue does **not** guarantee the printer has physically finished.
+The tool therefore uses three phases, with a human confirmation as the
+final safety net:
+
+1. **Tracks its own job ID** (not the whole queue), so other users' jobs
+   on a shared printer can't confuse it.
+2. **Distinguishes completion from cancellation** — a job that vanishes
+   from the active list without reaching the completed collection triggers
+   a warning dialog instead of silently proceeding.
+3. **Waits for the printer to report physically idle** (USB backends like
+   Epson's report busy/printing state) before showing the flip dialog —
+   plus the dialog itself requires you to confirm the pages are actually
+   in the tray before the backs are printed.
+
+## Known limitations / edge cases
+
+- **Multiple copies** are forced to 1 (`copies=1`) — collated multi-copy
+  odd/even interleaving is a footgun. For N copies, run the wizard N times.
+- **Paper-feed orientation varies by printer** (rear feed vs. cassette).
+  The flip instructions match the common rear-feed case; test with a
+  4-page document first, and report your printer's quirk as an issue.
+- **Printers that don't report busy/idle state** fall back to a timeout;
+  the flip dialog's human confirmation covers the residual race.
+- **Odd total page counts**: CUPS emits no blank trailing even page, so
+  the last odd page simply gets no back — usually what you want, but
+  keep it in mind when reinserting the stack.
 
 ## Contributing
 

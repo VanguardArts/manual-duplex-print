@@ -35,7 +35,7 @@
 #               installable on demand from the wizard).
 
 set -u
-VERSION="1.3.0"
+VERSION="1.3.1"
 PROG="manual-duplex"
 
 # ---------------------------------------------------------------- defaults --
@@ -235,18 +235,67 @@ if ! dlg_yesno "Manual Duplex Printing\n\nFile: $(basename "$ORIG_FILE")\nPrinte
     exit 0
 fi
 
+# ----------------------------------------------------- robust job tracking --
+# Submit a job and echo its CUPS request id (e.g. "L3250_Series-42").
+submit_job() {  # $1.. = extra lp options; FILE is used implicitly
+    local out
+    out=$(lp -d "$PRINTER" "$@" -- "$FILE") || return 1
+    echo "$out" | sed -n 's/^request id is \([^ ]*\).*/\1/p'
+}
+
+# Wait for OUR job (not just any queue activity) to finish printing.
+# Returns: 0 = printed & printer idle, 2 = job vanished (canceled/aborted?),
+#          1 = timeout
+wait_for_job() {  # $1 = request id
+    local id="$1" t=0
+
+    # Phase 1: wait until our job leaves the ACTIVE list. Polling only our
+    # request id means other users' jobs on the same queue can't confuse us.
+    while lpstat -o "$PRINTER" 2>/dev/null | grep -q "^$id "; do
+        sleep 2; t=$((t+2))
+        [ $t -ge 3600 ] && return 1
+    done
+
+    # Phase 2: distinguish completion from cancellation. A job that left
+    # the active list without entering the completed collection was most
+    # likely canceled or aborted.
+    if ! lpstat -W completed -o "$PRINTER" 2>/dev/null | grep -q "^$id "; then
+        return 2
+    fi
+
+    # Phase 3: an empty queue does NOT mean the last page has physically
+    # exited — the backend may have handed data off while the printer is
+    # still churning. Wait until the printer reports itself idle (USB
+    # backends like Epson's report busy/printing state), with a timeout
+    # for printers that don't report state reliably.
+    t=0
+    while lpstat -p "$PRINTER" 2>/dev/null | grep -Eq 'now printing| busy'; do
+        sleep 2; t=$((t+2))
+        [ $t -ge 600 ] && break
+    done
+    sleep 2   # settle
+    return 0
+}
+
 # ---------------------------------------------------------- pass 1: odds ---
-if ! lp -d "$PRINTER" -o page-set=odd -o sides=one-sided -- "$FILE"; then
+JOB1=$(submit_job -o page-set=odd -o sides=one-sided -o copies=1)
+if [ -z "$JOB1" ]; then
     dlg_error "Failed to submit the odd-page print job."
     exit 1
 fi
 
 # --------------------------------------------- wait until printer is done --
 notify "Printing odd pages…" 5
-while [ -n "$(lpstat -o "$PRINTER" 2>/dev/null)" ]; do
-    sleep 2
-done
-sleep 3   # let the last page physically exit
+wait_for_job "$JOB1"
+case $? in
+    0) : ;;  # printed, printer idle
+    2) if ! dlg_yesno "The odd-page job ('$JOB1') left the queue abnormally —\nwas it canceled or did printing fail?\n\nContinue to the flip step only if the odd pages did print correctly.\n\nContinue?"; then
+           exit 1
+       fi ;;
+    *) if ! dlg_yesno "Timed out waiting for the odd-page job to finish.\n\nContinue to the flip step only if the odd pages printed correctly.\n\nContinue?"; then
+           exit 1
+       fi ;;
+esac
 
 # ----------------------------------------------------------- flip prompt ---
 if ! dlg_yesno "Odd pages are done.\n\nNow:\n1. Take the whole stack from the output tray AS IS (do not reorder).\n2. $FLIP\n3. Put it back in the feed tray, printed side facing the way your printer expects (blank side toward the print head), top edge up.\n\nClick Yes when the paper is loaded — even pages will print.\nClick No to cancel (the backs will not be printed)."; then
@@ -254,7 +303,8 @@ if ! dlg_yesno "Odd pages are done.\n\nNow:\n1. Take the whole stack from the ou
 fi
 
 # --------------------------------------------------------- pass 2: evens ---
-if ! lp -d "$PRINTER" -o page-set=even -o sides=one-sided -- "$FILE"; then
+JOB2=$(submit_job -o page-set=even -o sides=one-sided -o copies=1)
+if [ -z "$JOB2" ]; then
     dlg_error "Failed to submit the even-page print job."
     exit 1
 fi
