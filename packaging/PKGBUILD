@@ -1,6 +1,6 @@
 # Maintainer: Vanguard Arts SRL <https://github.com/VanguardArts>
 pkgname=manual-duplex-print
-pkgver=1.2.0
+pkgver=1.3.0
 pkgrel=1
 pkgdesc="Manual duplex printing wizard for single-sided CUPS printers ('fake duplexer')"
 arch=('any')

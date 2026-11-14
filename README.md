@@ -28,6 +28,11 @@ option greyed out. `manual-duplex` fills the gap:
   <em>Once the queue is empty, you get exact flip-and-reload instructions.</em>
 </p>
 
+<p align="center">
+  <img src="docs/screenshots/wizard-install.png" alt="Missing converter? One-click install buttons" width="430"><br>
+  <em>Missing a converter for a non-PDF file? Install it right from the dialog.</em>
+</p>
+
 ## Supported file formats
 
 | Format | Converter used | Works without LibreOffice? |
@@ -41,9 +46,22 @@ option greyed out. `manual-duplex` fills the gap:
 
 Conversion happens automatically and invisibly — you can right-click a
 `.docx` exactly the same way as a `.pdf`. The tool tries LibreOffice
-first (best fidelity), falls back to **pandoc** (lightweight, ~30 MB)
-for text documents, and if neither is installed it explains what to do.
-The converted PDF is temporary and deleted after printing.
+first (best fidelity) and falls back to **pandoc** (lightweight, ~30 MB)
+for text documents. The converted PDF is temporary and deleted after
+printing.
+
+**Missing a converter? The wizard installs it for you.** If you feed it
+a non-PDF and neither LibreOffice nor pandoc is present, the dialog
+offers *Install LibreOffice* / *Install pandoc* buttons — one click, an
+admin password prompt, and the conversion continues automatically.
+Works across apt, dnf, zypper, and pacman systems.
+
+*Why is this needed at all?* Linux's print system (CUPS) is PDF-centric:
+every job becomes PDF internally, and the odd/even page-splitting
+happens in a filter that only understands PDF. Unlike Windows, the print
+stack has no built-in renderer for office documents — so a rendering
+engine (LibreOffice/pandoc) is required for anything that isn't already
+PDF.
 
 > **No LibreOffice? No problem** for PDFs (nothing extra needed) or
 > text documents (`sudo apt install pandoc`). Only presentations and
@@ -53,24 +71,24 @@ The converted PDF is temporary and deleted after printing.
 
 ### Option 1 — Debian/Ubuntu package (.deb)
 
-Download `manual-duplex-print_1.2.0_all.deb` from the
+Download `manual-duplex-print_1.3.0_all.deb` from the
 [latest release](https://github.com/VanguardArts/manual-duplex-print/releases/latest)
 and either double-click it, or install from a terminal:
 
 ```sh
-sudo apt install ./manual-duplex-print_1.2.0_all.deb
+sudo apt install ./manual-duplex-print_1.3.0_all.deb
 ```
 
 Remove it later with `sudo apt remove manual-duplex-print`.
 
 ### Option 2 — Fedora/RHEL/openSUSE package (.rpm)
 
-Download `manual-duplex-print-1.2.0-1.noarch.rpm` from the
+Download `manual-duplex-print-1.3.0-1.noarch.rpm` from the
 [latest release](https://github.com/VanguardArts/manual-duplex-print/releases/latest):
 
 ```sh
-sudo dnf install ./manual-duplex-print-1.2.0-1.noarch.rpm   # Fedora/RHEL
-sudo zypper install ./manual-duplex-print-1.2.0-1.noarch.rpm # openSUSE
+sudo dnf install ./manual-duplex-print-1.3.0-1.noarch.rpm   # Fedora/RHEL
+sudo zypper install ./manual-duplex-print-1.3.0-1.noarch.rpm # openSUSE
 ```
 
 ### Option 3 — Arch Linux
@@ -111,6 +129,9 @@ Uninstall with `sudo ./uninstall.sh` (or `sudo make uninstall`).
 - `libreoffice` — optional, only needed for non-PDF office documents
 - `pandoc` — optional lightweight alternative converter for text
   documents (docx/odt/rtf/md/html/epub/txt)
+
+  *(Both are installable on demand from the wizard's install buttons —
+  see above.)*
 - The odd/even page filtering uses the standard `cups-filters` pipeline
   present on virtually all distros — no setup needed
 

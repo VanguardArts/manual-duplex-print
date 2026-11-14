@@ -19,19 +19,23 @@
 #   -V, --version        show version
 #
 # Supported formats:
-#   PDF natively. Office documents are converted to PDF automatically
-#   when a converter is available:
+#   PDF natively (CUPS is PDF-centric: the odd/even page-splitting is
+#   done by the pdftopdf filter, which only understands PDF). Office
+#   documents must first be RENDERED to PDF by an external engine —
+#   Linux's print stack has no built-in office renderer (unlike
+#   Windows, where each app draws its own pages). Converters used:
 #     - LibreOffice (doc, docx, odt, ods, odp, ppt, pptx, xls, xlsx, rtf, …)
 #     - pandoc      (docx, odt, rtf, md, html, …) — lightweight fallback
-#   If neither is installed, non-PDF files are rejected with guidance.
+#   If neither is installed, the wizard offers to install one for you.
 #
 # Dependencies: bash, CUPS client tools (lp, lpstat),
 #               kdialog or zenity for GUI prompts (optional — falls
 #               back to terminal prompts when neither is available),
-#               LibreOffice or pandoc (optional — only for non-PDF files).
+#               LibreOffice or pandoc (optional — only for non-PDF files;
+#               installable on demand from the wizard).
 
 set -u
-VERSION="1.2.0"
+VERSION="1.3.0"
 PROG="manual-duplex"
 
 # ---------------------------------------------------------------- defaults --
@@ -111,6 +115,60 @@ if [ ! -f "$FILE" ]; then
     exit 1
 fi
 
+# -------------------------------------------------- dependency installation --
+# Install a logical package via this distro's package manager (with a
+# graphical pkexec password prompt). $1 = libreoffice|pandoc
+install_pkg() {
+    local pkg="$1"
+    if command -v apt-get >/dev/null 2>&1; then
+        pkexec apt-get install -y "$pkg"
+    elif command -v dnf >/dev/null 2>&1; then
+        pkexec dnf install -y "$pkg"
+    elif command -v zypper >/dev/null 2>&1; then
+        pkexec zypper install -y "$pkg"
+    elif command -v pacman >/dev/null 2>&1; then
+        [ "$pkg" = "libreoffice" ] && pkg="libreoffice-fresh"
+        pkexec pacman -S --noconfirm "$pkg"
+    else
+        return 1
+    fi
+}
+
+# Ask the user which converter to install. Echoes: libreoffice | pandoc | cancel
+offer_converter_install() {  # $1 = message
+    case "$GUI" in
+        kdialog)
+            kdialog --yesnocancel "$1" \
+                --yes-label "Install LibreOffice" \
+                --no-label "Install pandoc" \
+                --cancel-label "Cancel"
+            case $? in
+                0) echo libreoffice ;;
+                1) echo pandoc ;;
+                *) echo cancel ;;
+            esac ;;
+        zenity)
+            local out rc
+            out=$(zenity --question --width=520 --text="$1" \
+                    --ok-label="Install LibreOffice" \
+                    --cancel-label="Cancel" \
+                    --extra-button="Install pandoc" 2>/dev/null)
+            rc=$?
+            if [ $rc -eq 0 ]; then echo libreoffice
+            elif [ "$out" = "Install pandoc" ]; then echo pandoc
+            else echo cancel
+            fi ;;
+        none)
+            printf '%s\n\n[L]ibreOffice  [p]andoc  [c]ancel: ' "$1"
+            local a; read -r a
+            case "$a" in
+                [Ll]*) echo libreoffice ;;
+                [Pp]*) echo pandoc ;;
+                *) echo cancel ;;
+            esac ;;
+    esac
+}
+
 # ------------------------------------------- convert non-PDF formats to PDF --
 ORIG_FILE="$FILE"
 if [[ "${FILE,,}" != *.pdf ]]; then
@@ -122,29 +180,40 @@ if [[ "${FILE,,}" != *.pdf ]]; then
 
     notify "Converting $BASE to PDF…" 5
 
-    # Converter 1: LibreOffice (handles everything MS Office + ODF)
-    SOFFICE=$(command -v libreoffice || command -v soffice || true)
-    if [ -n "$SOFFICE" ]; then
-        if "$SOFFICE" --headless --convert-to pdf --outdir "$TMPDIR_CONV" "$FILE" >/dev/null 2>&1; then
-            CONVERTED=$(find "$TMPDIR_CONV" -maxdepth 1 -name '*.pdf' | head -1)
+    while [ -z "$CONVERTED" ]; do
+        # Converter 1: LibreOffice (handles everything MS Office + ODF)
+        SOFFICE=$(command -v libreoffice || command -v soffice || true)
+        if [ -n "$SOFFICE" ]; then
+            if "$SOFFICE" --headless --convert-to pdf --outdir "$TMPDIR_CONV" "$FILE" >/dev/null 2>&1; then
+                CONVERTED=$(find "$TMPDIR_CONV" -maxdepth 1 -name '*.pdf' | head -1)
+            fi
         fi
-    fi
 
-    # Converter 2: pandoc (lightweight; good for text documents)
-    if [ -z "$CONVERTED" ] && command -v pandoc >/dev/null 2>&1; then
-        case "$EXT" in
-            docx|odt|rtf|md|markdown|html|htm|epub|txt)
-                OUT="$TMPDIR_CONV/converted.pdf"
-                if pandoc "$FILE" -o "$OUT" >/dev/null 2>&1 && [ -s "$OUT" ]; then
-                    CONVERTED="$OUT"
+        # Converter 2: pandoc (lightweight; good for text documents)
+        if [ -z "$CONVERTED" ] && command -v pandoc >/dev/null 2>&1; then
+            case "$EXT" in
+                docx|odt|rtf|md|markdown|html|htm|epub|txt)
+                    OUT="$TMPDIR_CONV/converted.pdf"
+                    if pandoc "$FILE" -o "$OUT" >/dev/null 2>&1 && [ -s "$OUT" ]; then
+                        CONVERTED="$OUT"
+                    fi ;;
+            esac
+        fi
+
+        [ -n "$CONVERTED" ] && break
+
+        # No converter available (or conversion failed) — offer to install one
+        CHOICE=$(offer_converter_install "'$BASE' is not a PDF, and no document converter is available to render it.\n\n(Linux's print system only understands PDF natively — office\ndocuments must be rendered to PDF first.)\n\n• LibreOffice — full office suite, best fidelity, ~500 MB\n• pandoc — lightweight (~30 MB), text documents only\n\nInstall one now, or cancel and export a PDF yourself?")
+        case "$CHOICE" in
+            libreoffice|pandoc)
+                notify "Installing $CHOICE…" 5
+                if ! install_pkg "$CHOICE"; then
+                    dlg_error "Installation of '$CHOICE' failed or was cancelled."
+                    exit 1
                 fi ;;
+            *)  exit 0 ;;
         esac
-    fi
-
-    if [ -z "$CONVERTED" ]; then
-        dlg_error "Cannot convert '$BASE' to PDF.\n\nInstall LibreOffice (full office support) or pandoc\n(text documents), or export the file to PDF from your\napplication and try again."
-        exit 1
-    fi
+    done
     FILE="$CONVERTED"
 fi
 
