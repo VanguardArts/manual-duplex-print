@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Manual Duplex Print
+Comment=Print double-sided manually: odd pages, flip wizard, even pages
+Exec=/usr/local/bin/manual-duplex %f
+Icon=printer
+MimeType=application/pdf;
+NoDisplay=false
+Categories=Utility;Printing;
+Keywords=duplex;print;double-sided;two-sided;
