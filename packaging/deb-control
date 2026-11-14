@@ -1,0 +1,19 @@
+Package: manual-duplex-print
+Version: 0.0.0
+Section: utils
+Priority: optional
+Architecture: all
+Maintainer: Vanguard Arts SRL <vanguardarts@users.noreply.github.com>
+Depends: bash, cups-client
+Recommends: kdialog | zenity
+Suggests: libreoffice-core, pandoc
+Homepage: https://github.com/VanguardArts/manual-duplex-print
+Description: Manual duplex printing wizard for single-sided CUPS printers
+ A "fake duplexer wizard": prints odd pages, waits for the printer,
+ prompts you to flip and reload the stack, then prints even pages on the
+ backs. Brings Windows-style manual duplex to Linux for printers without
+ duplex hardware (e.g. Epson EcoTank L3250/ET-2810).
+ .
+ Non-PDF office documents are converted automatically via LibreOffice
+ or pandoc when installed. Integrates with file managers via a desktop
+ entry (right-click a document -> Open With -> Manual Duplex Print).
