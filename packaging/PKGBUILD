@@ -1,0 +1,23 @@
+# Maintainer: Vanguard Arts SRL <https://github.com/VanguardArts>
+pkgname=manual-duplex-print
+pkgver=1.2.0
+pkgrel=1
+pkgdesc="Manual duplex printing wizard for single-sided CUPS printers ('fake duplexer')"
+arch=('any')
+url="https://github.com/VanguardArts/manual-duplex-print"
+license=('GPL-3.0-or-later')
+depends=('bash' 'cups')
+optdepends=('kdialog: KDE desktop dialogs'
+            'zenity: GTK desktop dialogs'
+            'libreoffice-core: conversion of office documents (docx, odt, pptx…)'
+            'pandoc: lightweight conversion of text documents')
+source=("$pkgname-$pkgver.tar.gz::$url/archive/refs/tags/v$pkgver.tar.gz")
+sha256sums=('SKIP')  # fill in with: updpkgsums
+
+package() {
+    cd "$pkgname-$pkgver"
+    install -Dm755 manual-duplex "$pkgdir/usr/bin/manual-duplex"
+    install -Dm644 manual-duplex.desktop "$pkgdir/usr/share/applications/manual-duplex.desktop"
+    install -Dm644 README.md "$pkgdir/usr/share/doc/$pkgname/README.md"
+    install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+}

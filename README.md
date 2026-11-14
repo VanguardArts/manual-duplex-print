@@ -16,6 +16,18 @@ option greyed out. `manual-duplex` fills the gap:
 ![license](https://img.shields.io/badge/license-GPL--3.0-blue)
 ![release](https://img.shields.io/github/v/release/VanguardArts/manual-duplex-print)
 
+## Screenshots
+
+<p align="center">
+  <img src="docs/screenshots/wizard-intro.png" alt="Step 1: wizard intro — file, printer, and the 3 steps" width="430"><br>
+  <em>The wizard confirms the file and printer, then prints all odd pages.</em>
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/wizard-flip.png" alt="Step 2: flip instructions while the printer waits"><br>
+  <em>Once the queue is empty, you get exact flip-and-reload instructions.</em>
+</p>
+
 ## Supported file formats
 
 | Format | Converter used | Works without LibreOffice? |
@@ -39,19 +51,43 @@ The converted PDF is temporary and deleted after printing.
 
 ## Installation
 
-### Option 1 — Debian/Ubuntu package (easiest)
+### Option 1 — Debian/Ubuntu package (.deb)
 
-Download `manual-duplex-print_1.1.0_all.deb` from the
+Download `manual-duplex-print_1.2.0_all.deb` from the
 [latest release](https://github.com/VanguardArts/manual-duplex-print/releases/latest)
 and either double-click it, or install from a terminal:
 
 ```sh
-sudo apt install ./manual-duplex-print_1.1.0_all.deb
+sudo apt install ./manual-duplex-print_1.2.0_all.deb
 ```
 
 Remove it later with `sudo apt remove manual-duplex-print`.
 
-### Option 2 — Install script (any distro)
+### Option 2 — Fedora/RHEL/openSUSE package (.rpm)
+
+Download `manual-duplex-print-1.2.0-1.noarch.rpm` from the
+[latest release](https://github.com/VanguardArts/manual-duplex-print/releases/latest):
+
+```sh
+sudo dnf install ./manual-duplex-print-1.2.0-1.noarch.rpm   # Fedora/RHEL
+sudo zypper install ./manual-duplex-print-1.2.0-1.noarch.rpm # openSUSE
+```
+
+### Option 3 — Arch Linux
+
+A `PKGBUILD` is included in [`packaging/`](packaging/PKGBUILD):
+
+```sh
+git clone https://github.com/VanguardArts/manual-duplex-print.git
+mkdir -p /tmp/manual-duplex-build
+cp manual-duplex-print/packaging/PKGBUILD /tmp/manual-duplex-build/
+cd /tmp/manual-duplex-build && makepkg -si
+```
+
+(Publishing to the AUR proper requires an AUR account — see
+[CONTRIBUTING](CONTRIBUTING.md) if you'd like to maintain it.)
+
+### Option 4 — Install script (any distro)
 
 ```sh
 git clone https://github.com/VanguardArts/manual-duplex-print.git

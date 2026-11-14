@@ -31,7 +31,7 @@
 #               LibreOffice or pandoc (optional — only for non-PDF files).
 
 set -u
-VERSION="1.1.0"
+VERSION="1.2.0"
 PROG="manual-duplex"
 
 # ---------------------------------------------------------------- defaults --
