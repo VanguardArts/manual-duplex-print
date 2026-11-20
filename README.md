@@ -71,24 +71,24 @@ PDF.
 
 ### Option 1 — Debian/Ubuntu package (.deb)
 
-Download `manual-duplex-print_1.3.1_all.deb` from the
+Download `manual-duplex-print_1.3.2_all.deb` from the
 [latest release](https://github.com/VanguardArts/manual-duplex-print/releases/latest)
 and either double-click it, or install from a terminal:
 
 ```sh
-sudo apt install ./manual-duplex-print_1.3.1_all.deb
+sudo apt install ./manual-duplex-print_1.3.2_all.deb
 ```
 
 Remove it later with `sudo apt remove manual-duplex-print`.
 
 ### Option 2 — Fedora/RHEL/openSUSE package (.rpm)
 
-Download `manual-duplex-print-1.3.1-1.noarch.rpm` from the
+Download `manual-duplex-print-1.3.2-1.noarch.rpm` from the
 [latest release](https://github.com/VanguardArts/manual-duplex-print/releases/latest):
 
 ```sh
-sudo dnf install ./manual-duplex-print-1.3.1-1.noarch.rpm   # Fedora/RHEL
-sudo zypper install ./manual-duplex-print-1.3.1-1.noarch.rpm # openSUSE
+sudo dnf install ./manual-duplex-print-1.3.2-1.noarch.rpm   # Fedora/RHEL
+sudo zypper install ./manual-duplex-print-1.3.2-1.noarch.rpm # openSUSE
 ```
 
 ### Option 3 — Arch Linux

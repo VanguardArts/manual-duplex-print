@@ -1,5 +1,5 @@
 Name:           manual-duplex-print
-Version:        1.2.0
+Version:        1.3.2
 Release:        1%{?dist}
 Summary:        Manual duplex printing wizard for single-sided CUPS printers
 
@@ -41,6 +41,7 @@ install -Dm644 manual-duplex.desktop %{buildroot}%{_datadir}/applications/manual
 %license LICENSE
 
 %changelog
+* Sat Nov 21 2026 Vanguard Arts SRL <https://vanguardarts.vip/> - 1.3.2-1
 * Sat Nov 14 2026 Vanguard Arts SRL - 1.2.0-1
 - Screenshots in docs, RPM and AUR packaging
 
