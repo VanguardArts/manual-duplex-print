@@ -223,3 +223,8 @@ distros (.rpm, Flatpak, AUR).
 ## License
 
 GPL-3.0-or-later. See [LICENSE](LICENSE).
+
+## Vanguard Arts
+
+- **Website:** https://vanguardarts.vip/
+- **Support / contact:** [https://vanguardarts.vip/contact](https://vanguardarts.vip/contact) (contact form)
