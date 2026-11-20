@@ -71,24 +71,24 @@ PDF.
 
 ### Option 1 — Debian/Ubuntu package (.deb)
 
-Download `manual-duplex-print_1.3.0_all.deb` from the
+Download `manual-duplex-print_1.3.1_all.deb` from the
 [latest release](https://github.com/VanguardArts/manual-duplex-print/releases/latest)
 and either double-click it, or install from a terminal:
 
 ```sh
-sudo apt install ./manual-duplex-print_1.3.0_all.deb
+sudo apt install ./manual-duplex-print_1.3.1_all.deb
 ```
 
 Remove it later with `sudo apt remove manual-duplex-print`.
 
 ### Option 2 — Fedora/RHEL/openSUSE package (.rpm)
 
-Download `manual-duplex-print-1.3.0-1.noarch.rpm` from the
+Download `manual-duplex-print-1.3.1-1.noarch.rpm` from the
 [latest release](https://github.com/VanguardArts/manual-duplex-print/releases/latest):
 
 ```sh
-sudo dnf install ./manual-duplex-print-1.3.0-1.noarch.rpm   # Fedora/RHEL
-sudo zypper install ./manual-duplex-print-1.3.0-1.noarch.rpm # openSUSE
+sudo dnf install ./manual-duplex-print-1.3.1-1.noarch.rpm   # Fedora/RHEL
+sudo zypper install ./manual-duplex-print-1.3.1-1.noarch.rpm # openSUSE
 ```
 
 ### Option 3 — Arch Linux
@@ -114,6 +114,21 @@ sudo ./install.sh          # or: sudo make install
 ```
 
 Uninstall with `sudo ./uninstall.sh` (or `sudo make uninstall`).
+
+### Option 5 — Nix / NixOS
+
+A flake is included at the repo root:
+
+```sh
+nix build github:VanguardArts/manual-duplex-print
+```
+
+CUPS client tools are wired onto the `manual-duplex` PATH automatically; the
+other converters remain optional (the wizard offers to install them on demand).
+
+> Flatpak and AppImage are intentionally not provided: this is a
+> system-integrated print helper that drives CUPS directly, so it runs best as
+> a native package or the install script.
 
 ### What gets installed
 
